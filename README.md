@@ -50,7 +50,7 @@ The prototype:
 > ⚠️ Note: The hardware shown is a prototype and not a finalized or certified medical device.
 
 <p align="center">
-  <img src="IMG-20251224-WA0002.jpeg" alt="AXION AI Hardware Prototype" width="350"/>
+  <img src="screenshots/IMG-20251224-WA0002.jpeg" alt="AXION AI Hardware Prototype" width="350"/>
 </p>
 
 ---
