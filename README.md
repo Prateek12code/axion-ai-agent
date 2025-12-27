@@ -45,7 +45,7 @@ The prototype:
 
 > ⚠️ Note: The hardware shown is a prototype and not a finalized or certified medical device.
 
-![Hardware Demo](screenshots/hardware_demo.jpg)
+![Hardware Demo](screenshots/IMG-20251224-WA0002.jpeg)
 
 ---
 
