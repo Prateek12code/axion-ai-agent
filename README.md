@@ -74,5 +74,8 @@ This demonstrates the core concept of **avoiding stale knowledge**.
 git clone https://github.com/Prateek12code/axion-ai-agent
 cd axion-ai
 python -m src.demo init
-python -m src.demo live &
+python -m src.demo live
+
+###In another terminal
+
 python -m src.demo gen
