@@ -72,7 +72,7 @@ This demonstrates the core concept of **avoiding stale knowledge**.
 
 ```bash
 git clone https://github.com/Prateek12code/axion-ai-agent
-cd axion-ai
+cd axion-ai-agent
 python -m src.demo init
 python -m src.demo live
 
