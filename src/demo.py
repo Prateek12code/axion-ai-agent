@@ -1,7 +1,7 @@
 import time, json, os, random, argparse
-from live_store import ensure, list_scans, is_new_or_updated, mark_processed, append_history, last_rows, INBOX_DIR, now_iso
-from pipeline import parse_scan, features, predict, labels, confidence, alerts, render_card
-from agent import summary, trend_lines
+from src.live_store import ensure, list_scans, is_new_or_updated, mark_processed, append_history, last_rows, INBOX_DIR, now_iso
+from src.pipeline import parse_scan, features, predict, labels, confidence, alerts, render_card
+from src.agent import summary, trend_lines
 
 def gen_scan(out_name=None, seed=None):
     ensure()
@@ -47,7 +47,7 @@ def live(poll=1.0):
     ensure()
     print("\nAXION AI V2 — Live Spectral Demo")
     print(f"Drop scan JSONs into ./{INBOX_DIR}/")
-    print("Commands in another terminal: python -m src.demo gen\n")
+    print("Generate a scan from another terminal: python src/demo.py gen\n")
     while True:
         for p in list_scans():
             ok, key, mt = is_new_or_updated(p)
@@ -85,7 +85,7 @@ def main():
     if args.cmd == "once":
         ensure()
         if not args.file or not os.path.exists(args.file):
-            print("Use: python -m src.demo once --file inbox_scans/<scan>.json")
+            print("Use: python src/demo.py once --file inbox_scans/<scan>.json")
             return
         card, summ = process_file(args.file)
         print(card)
