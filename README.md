@@ -76,6 +76,6 @@ cd axion-ai
 python -m src.demo init
 python -m src.demo live
 
-###In another terminal
+In another terminal
 
 python -m src.demo gen
