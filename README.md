@@ -69,8 +69,10 @@ This demonstrates the core concept of **avoiding stale knowledge**.
 ---
 
 ## Setup Instructions
+
 ```bash
-git clone https://github.com/yourusername/axion-ai
+git clone https://github.com/Prateek12code/axion-ai-agent
 cd axion-ai
-pip install -r requirements.txt
-python src/demo.py
+python -m src.demo init
+python -m src.demo live &
+python -m src.demo gen
