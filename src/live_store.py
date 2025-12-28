@@ -1,89 +1,62 @@
-import os
-import time
-from dataclasses import dataclass
-from typing import Dict, List, Tuple
+import os, json, csv
+from datetime import datetime
 
-SUPPORTED_EXTS = {".txt", ".md", ".log"}
+INBOX_DIR = "inbox_scans"
+STATE_JSON = "state.json"
+HISTORY_CSV = "history.csv"
 
-@dataclass
-class Doc:
-    path: str
-    mtime: float
-    text: str
+def now_iso():
+    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
-class LiveStore:
-    """
-    A tiny 'live knowledge store' for Round-2 demo.
-    Watches a folder and keeps the latest text of each file.
-    """
-    def __init__(self, folder: str):
-        self.folder = folder
-        self.docs: Dict[str, Doc] = {}
+def ensure():
+    os.makedirs(INBOX_DIR, exist_ok=True)
+    if not os.path.exists(STATE_JSON):
+        with open(STATE_JSON, "w", encoding="utf-8") as f:
+            json.dump({"processed": {}}, f, indent=2)
+    if not os.path.exists(HISTORY_CSV):
+        with open(HISTORY_CSV, "w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            w.writerow(["ts","scan_id","file","Hb","SpO2","GlucoseTrend","Hydration","Label_Hb","Label_SpO2","Label_GlucoseTrend","Label_Hydration","Alerts","Summary"])
 
-    def _read_text_file(self, path: str) -> str:
-        # Safe read (ignore weird chars)
-        with open(path, "r", encoding="utf-8", errors="ignore") as f:
-            return f.read()
+def load_state():
+    with open(STATE_JSON, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    def scan_once(self) -> Tuple[int, int, int]:
-        """
-        Returns: (added, updated, removed)
-        """
-        added = updated = removed = 0
+def save_state(st):
+    with open(STATE_JSON, "w", encoding="utf-8") as f:
+        json.dump(st, f, indent=2)
 
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder, exist_ok=True)
+def list_scans():
+    ensure()
+    files = []
+    for name in os.listdir(INBOX_DIR):
+        p = os.path.join(INBOX_DIR, name)
+        if os.path.isfile(p) and name.lower().endswith(".json"):
+            files.append(p)
+    files.sort(key=lambda x: os.path.getmtime(x))
+    return files
 
-        seen: set[str] = set()
+def mark_processed(filename, mtime):
+    st = load_state()
+    st["processed"][filename] = mtime
+    save_state(st)
 
-        for root, _, files in os.walk(self.folder):
-            for name in files:
-                ext = os.path.splitext(name)[1].lower()
-                if ext not in SUPPORTED_EXTS:
-                    continue
-                path = os.path.join(root, name)
-                seen.add(path)
-                mtime = os.path.getmtime(path)
+def is_new_or_updated(path):
+    st = load_state()
+    key = os.path.basename(path)
+    mt = os.path.getmtime(path)
+    last = st["processed"].get(key, 0)
+    return mt > last, key, mt
 
-                if path not in self.docs:
-                    text = self._read_text_file(path)
-                    self.docs[path] = Doc(path=path, mtime=mtime, text=text)
-                    added += 1
-                else:
-                    if mtime > self.docs[path].mtime:
-                        text = self._read_text_file(path)
-                        self.docs[path] = Doc(path=path, mtime=mtime, text=text)
-                        updated += 1
+def append_history(row):
+    ensure()
+    with open(HISTORY_CSV, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(row)
 
-        # Removed files
-        for path in list(self.docs.keys()):
-            if path not in seen:
-                del self.docs[path]
-                removed += 1
-
-        return added, updated, removed
-
-    def search(self, query: str, top_k: int = 3) -> List[Tuple[str, str]]:
-        """
-        Super simple keyword scoring. Returns [(path, snippet), ...]
-        """
-        q = (query or "").strip().lower()
-        if not q:
-            return []
-
-        scored: List[Tuple[int, str, str]] = []
-        for path, doc in self.docs.items():
-            text_low = doc.text.lower()
-            score = text_low.count(q)
-            if score > 0:
-                idx = text_low.find(q)
-                start = max(0, idx - 80)
-                end = min(len(doc.text), idx + 120)
-                snippet = doc.text[start:end].replace("\n", " ").strip()
-                scored.append((score, path, snippet))
-
-        scored.sort(reverse=True, key=lambda x: x[0])
-        return [(p, s) for _, p, s in scored[:top_k]]
-
-    def summary(self) -> str:
-        return f"{len(self.docs)} live docs loaded from '{self.folder}'."
+def last_rows(n=5):
+    if not os.path.exists(HISTORY_CSV):
+        return []
+    with open(HISTORY_CSV, "r", newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    return rows[-n:]
