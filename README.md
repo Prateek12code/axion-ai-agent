@@ -68,7 +68,7 @@ This demonstrates the core concept of **avoiding stale knowledge**.
 
 ---
 
-## Setup Instructions
+## How to Run
 
 ```bash
 git clone https://github.com/Prateek12code/axion-ai-agent
@@ -79,3 +79,5 @@ python -m src.demo live
 In another terminal
 
 python -m src.demo gen
+
+Return to the first terminal to see the system process the scan in real time.
